@@ -10,24 +10,22 @@ The zonal jet initial conditions from
 
 ```julia
 using SpeedyWeather
-using ManyZonalJets     # exports ZonalJets
+using ManyZonalJets
 
-spectral_grid = SpectralGrid(trunc=85, nlev=1)  # T85 resolution, ~165km global
-
-# initial conditions for three jets, at 45˚S, 0˚N, and 45˚N
-# all same strength and width, all perturbed the same way
+spectral_grid = SpectralGrid(trunc=85, nlev=1)
 initial_conditions = ZonalJets(latitude=[45,0,-45])
 orography = NoOrography(spectral_grid)
-
-# create a model with those initial conditions + initialize
-model = ShallowWaterModel(;spectral_grid, initial_conditions)
+model = ShallowWaterModel(;spectral_grid, orography, initial_conditions)
 simulation = initialize!(model)
-
-# run for 6 days
 run!(simulation, period=Day(6))
 ```
 
-## Gallery
+`using ManyZonalJets` exports the `ZonalJets` type. 
+`spectral_grid` defines the resolution to be T85 (~165km global).
+`ZonalJets` initial conditions are then created with jets at 45˚N, 0˚, 45˚S.
+`NoOrography` is used as in [Galewsky, 2004](https://doi.org/10.3402/tellusa.v56i5.14436).
+Then create a `ShallowWaterModel` with those components, `initialize!` and 
+`run!` the `simulation` for 6 days. Looks like
 
 ## Installation
 

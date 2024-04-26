@@ -87,19 +87,19 @@ function SpeedyWeather.initialize!(
     _, lons = RingGrids.get_colatlons(Grid, nlat_half)
 
     # loop over every jet and accumulate zonal velocities u and perturbations for η
-    for (θ₀, θ₁, eₙ, θ₂, α, β, λ) in zip(θ₀s, θ₁s, eₙs, θ₂s, αs, βs, λs)
+    for (umaxjet, θ₀, θ₁, eₙ, θ₂, α, β, λ, p) in zip(umax, θ₀s, θ₁s, eₙs, θ₂s, αs, βs, λs, perturb_height)
         for (j, ring) in enumerate(eachring(u_grid, η_perturb_grid))
             θ = lat[j]             # latitude in radians
             
             # velocity per latitude
             if θ₀ < θ < θ₁
-                u_θ = umax/eₙ*exp(1/(θ-θ₀)/(θ-θ₁))  # u as in Galewsky, 2004
+                u_θ = umaxjet/eₙ*exp(1/(θ-θ₀)/(θ-θ₁))  # u as in Galewsky, 2004
             else
                 u_θ = 0
             end
 
             # lon-constant part of perturbation
-            ηθ = perturb_height*cos(θ)*exp(-((θ₂-θ)/β)^2)
+            ηθ = p*cos(θ)*exp(-((θ₂-θ)/β)^2)
 
             # store in all longitudes
             for ij in ring
@@ -140,7 +140,7 @@ function SpeedyWeather.initialize!(
     RingGrids.scale_coslat!(u_grid)     # remove coslat scaling
     u_grid .*= radius                   # no radius scaling as we'll apply ∇⁻²(∇²) (would cancel)
     @. u_grid = convert(NF,1/2) * u_grid^2
-    u²_half = spectral!(u, u_grid, model.spectral_transform)
+    u²_half = SpeedyTransforms.spectral!(u, u_grid, model.spectral_transform)
     ∇²!(div, u²_half, model.spectral_transform, flipsign=true, add=true)
     div .*= inv(gravity)
 
@@ -149,9 +149,9 @@ function SpeedyWeather.initialize!(
     ∇⁻²!(pres, div, model.spectral_transform)
 
     # add perturbation
-    η_perturb = spectral!(u, η_perturb_grid, model.spectral_transform)
+    η_perturb = SpeedyTransforms.spectral!(u, η_perturb_grid, model.spectral_transform)
     pres .+= η_perturb
-    spectral_truncation!(pres)
+    SpeedyTransforms.spectral_truncation!(pres)
     return nothing
 end
 
