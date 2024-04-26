@@ -123,7 +123,7 @@ function SpeedyWeather.initialize!(
     # get vorticity initial conditions from curl of u, v
     v = zero(u)     # meridional velocity zero for these initial conditions
     (; vor) = progn.layers[end].timesteps[1]
-    curl!(vor, u, v, model.spectral_transform)
+    SpeedyTransforms.curl!(vor, u, v, model.spectral_transform)
 
     # compute the div = -∇⋅(0,(ζ+f)*u) = -∇×((ζ+f)*u, 0) term, v=0
     vor_grid = gridded(vor, model.spectral_transform)
