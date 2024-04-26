@@ -5,42 +5,59 @@ using DocStringExtensions
 
 export ZonalJets
 
-"""
-A struct that contains all parameters for the Galewsky et al, 2004 zonal jet
-intitial conditions for the shallow water model. Default values as in Galewsky.
+"""A struct that contains all parameters for multiple zonal jets each
+following Galewsky et al, 2004 for intitial conditions for the shallow water model.
+Default values as in Galewsky.
+
+All inputs need to be vectors of the same length, but can be omitted
+in which case the defaults are applied to each element = each jet.
+Only `latitude` always has to be provided for >1 jets as its length
+is used to determine how many jets there will be.
+
+    ZonalJets(latitude=[45,0,-45])      # three jets at 45˚N, 0˚, 45˚S
+    ZonalJets(  latitude=[45,0,-45],    
+                umax=[80, 40, 20])      # makes the southern jets weaker [m/s]
+    
+The initial conditions for u and η for each jet are superimposed.
+E.g. two jets at 45˚N at 80m/s will yield one jet at 160m/s.
+Which can be an unstable initial condition. Fields are
+
 $(TYPEDFIELDS)"""
 @kwdef mutable struct ZonalJets <: SpeedyWeather.AbstractInitialConditions
-    "jet latitude [˚N]"
+    "[OPTION] jet latitude [˚N]"
     latitude::Vector{Float64} = [45]
 
     "Number of jets, default obtained from length(latitude)"
     njets::Int = length(latitude)
     
-    "jet width [˚], default ≈ 19.29˚"
+    "[OPTION] jet width [˚], default ≈ 19.29˚"
     width::Vector{Float64} = fill((1/4-1/7)*180,njets)
 
-    "jet maximum velocity [m/s]"
+    "[OPTION] jet maximum velocity [m/s]"
     umax::Vector{Float64} = fill(80, njets)
     
-    "perturbation latitude [˚N], position in jet by default"
+    "[OPTION] perturbation latitude [˚N], position in jet by default"
     perturb_lat::Vector{Float64} = latitude
     
-    "perturbation longitude [˚E]"
+    "[OPTION] perturbation longitude [˚E]"
     perturb_lon::Vector{Float64} = fill(270, njets)
     
-    "perturbation zonal extent [˚], default ≈ 19.1˚"
+    "[OPTION] perturbation zonal extent [˚], default ≈ 19.1˚"
     perturb_xwidth::Vector{Float64} = fill(1/3*360/2π, njets)
 
-    "perturbation meridinoal extent [˚], default ≈ 3.8˚"
+    "[OPTION] perturbation meridinoal extent [˚], default ≈ 3.8˚"
     perturb_ywidth::Vector{Float64} = fill(1/15*360/2π, njets)
     
-    "perturbation amplitude [m]"
+    "[OPTION] perturbation amplitude [m]"
     perturb_height::Vector{Float64} = fill(120, njets)
 end
 
 """
 $(TYPEDSIGNATURES)
-Initial conditions from Galewsky, 2004, Tellus"""
+Initial conditions from Galewsky, 2004, Tellus but for each jet in
+`ManyJets` and each perturbation in the interface height η superimposed.
+Solves for balanced initial conditions (in the case of no perturbation)
+for all jets."""
 function SpeedyWeather.initialize!(   
     progn::PrognosticVariables,
     initial_conditions::ZonalJets,
@@ -53,7 +70,7 @@ function SpeedyWeather.initialize!(
 
     θ₀s = @. (latitude-width)/360*2π    # southern boundary of jet [radians]
     θ₁s = @. (latitude+width)/360*2π    # northern boundary of jet
-    eₙs = @. exp(-4/(θ₁-θ₀)^2)          # normalisation
+    eₙs = @. exp(-4/(θ₁s-θ₀s)^2)        # normalisation
     
     θ₂s = perturb_lat*2π/360            # perturbation latitude [radians]
     αs = perturb_xwidth*2π/360          # zonal extent of interface perturbation [radians]
