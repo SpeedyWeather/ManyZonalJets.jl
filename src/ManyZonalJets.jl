@@ -127,7 +127,7 @@ function SpeedyWeather.initialize!(
 
     # compute the div = -∇⋅(0,(ζ+f)*u) = -∇×((ζ+f)*u, 0) term, v=0
     vor_grid = gridded(vor, model.spectral_transform)
-    f = coriolis(vor_grid; rotation)
+    f = SpeedyWeather.coriolis(vor_grid; rotation)
 
     # includes 1/coslat/radius from above for curl!
     # but *radius^2 for the ∇⁻²! operation below!
