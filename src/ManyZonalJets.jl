@@ -131,7 +131,8 @@ function SpeedyWeather.initialize!(
 
     # includes 1/coslat/radius from above for curl!
     # but *radius^2 for the ∇⁻²! operation below!
-    vor_flux_grid = @. (vor_grid + f) * u_grid * radius^2
+    vor_flux_grid = zero(vor_grid)
+    @. vor_flux_grid = (vor_grid + f) * u_grid * radius^2
     vor_flux = spectral(vor_flux_grid, model.spectral_transform)
     div = zero(v)
     SpeedyTransforms.curl!(div, vor_flux, v, model.spectral_transform)
