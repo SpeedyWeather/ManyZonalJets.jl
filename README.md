@@ -25,7 +25,17 @@ run!(simulation, period=Day(6))
 `ZonalJets` initial conditions are then created with jets at 45˚N, 0˚, 45˚S.
 `NoOrography` is used as in [Galewsky, 2004](https://doi.org/10.3402/tellusa.v56i5.14436).
 Then create a `ShallowWaterModel` with those components, `initialize!` and 
-`run!` the `simulation` for 6 days. Looks like
+`run!` the `simulation` for 6 days.
+
+## Gallery
+
+At T127 vorticity evolves like
+
+https://github.com/SpeedyWeather/ManyZonalJets.jl/assets/25530332/344352f4-ef8a-4017-81d1-8f80da4a5c63
+
+with mountains via `orography = EarthOrography(spectral_grid)` we have instead
+
+https://github.com/SpeedyWeather/ManyZonalJets.jl/assets/25530332/adffaca3-f638-42a0-bd7c-5ca4942535ad
 
 ## Installation
 
