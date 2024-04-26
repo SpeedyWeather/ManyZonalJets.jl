@@ -88,7 +88,7 @@ function SpeedyWeather.initialize!(
 
     # loop over every jet and accumulate zonal velocities u and perturbations for η
     for (umaxjet, θ₀, θ₁, eₙ, θ₂, α, β, λ, p) in zip(umax, θ₀s, θ₁s, eₙs, θ₂s, αs, βs, λs, perturb_height)
-        for (j, ring) in enumerate(eachring(u_grid, η_perturb_grid))
+        for (j, ring) in enumerate(RingGrids.eachring(u_grid, η_perturb_grid))
             θ = lat[j]             # latitude in radians
             
             # velocity per latitude
@@ -134,19 +134,19 @@ function SpeedyWeather.initialize!(
     vor_flux_grid = @. (vor_grid + f) * u_grid * radius^2
     vor_flux = spectral(vor_flux_grid, model.spectral_transform)
     div = zero(v)
-    curl!(div, vor_flux, v, model.spectral_transform)
+    SpeedyTransforms.curl!(div, vor_flux, v, model.spectral_transform)
 
     # compute the -∇²(u^2/2) term, add to div, divide by gravity
     RingGrids.scale_coslat!(u_grid)     # remove coslat scaling
     u_grid .*= radius                   # no radius scaling as we'll apply ∇⁻²(∇²) (would cancel)
     @. u_grid = convert(NF,1/2) * u_grid^2
     u²_half = SpeedyTransforms.spectral!(u, u_grid, model.spectral_transform)
-    ∇²!(div, u²_half, model.spectral_transform, flipsign=true, add=true)
+    SpeedyTransforms.∇²!(div, u²_half, model.spectral_transform, flipsign=true, add=true)
     div .*= inv(gravity)
 
     # invert Laplacian to obtain η
     (; pres) = progn.surface.timesteps[1]
-    ∇⁻²!(pres, div, model.spectral_transform)
+    SpeedyTransforms.∇⁻²!(pres, div, model.spectral_transform)
 
     # add perturbation
     η_perturb = SpeedyTransforms.spectral!(u, η_perturb_grid, model.spectral_transform)
