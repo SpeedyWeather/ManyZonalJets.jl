@@ -10,13 +10,14 @@ The zonal jet initial conditions from
 
 ```julia
 using SpeedyWeather
-using ManyZonalJets
+using ManyZonalJets     # exports ZonalJets
 
 spectral_grid = SpectralGrid(trunc=85, nlev=1)  # T85 resolution, ~165km global
 
 # initial conditions for three jets, at 45˚S, 0˚N, and 45˚N
-initial_conditions = ManyZonalJets(latitude=[45,0,-45])
-orography = NoOrography(spectral_grid)          # no orography like in Galewsky, 2004
+# all same strength and width, all perturbed the same way
+initial_conditions = ZonalJets(latitude=[45,0,-45])
+orography = NoOrography(spectral_grid)
 
 # create a model with those initial conditions + initialize
 model = ShallowWaterModel(;spectral_grid, initial_conditions)
